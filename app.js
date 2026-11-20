@@ -243,7 +243,7 @@
         var myc = st.teams.filter(function (x) { return x.id === prof.team; })[0]; if (myc && myc.acc) main.appendChild(Compte(myc.acc));
       } else wait();
     }
-    function wait() { if (shown === "w" + (st ? st.v : 0)) return; shown = "w" + (st ? st.v : 0); clear(main); main.appendChild(h("h1", {}, "En attente de la prochaine question…")); main.appendChild(h("div", { class: "card" }, h("h3", {}, "Audit en direct de melia.green"), h("p", {}, "Lisez le relevé avant les questions : il sert à répondre."), h("button", { class: "pri", onclick: openAudit }, "Ouvrir le relevé de l'audit"))); main.appendChild(h("p", {}, st ? "Votre animateur va ouvrir la suite. Gardez cette page ouverte." : "Connexion à la séance " + sid + "… Si rien n'apparaît, vérifiez que l'animateur a ouvert la tour de contrôle.")); if (st && st.teams) { main.appendChild(h("div", { class: "card" }, h("h3", {}, "Classement"), Classement(st.teams, prof.team))); var my = st.teams.filter(function (x) { return x.id === prof.team; })[0]; if (my) main.appendChild(h("div", { class: "card" }, h("h3", {}, "Votre entreprise Granuval"), Jauges(my.j))); if (my && my.acc) main.appendChild(Compte(my.acc)); var ent = []; Object.keys(cache).forEach(function (id) { var tt2 = task(id); if (!tt2 || tt2.sondage || ans[id] === undefined) return; var p = E.score(tt2, cache[id].key, ans[id]); if (p !== null) ent.push({ c: tt2.code, p: p }); }); if (ent.length) main.appendChild(badgeCard(byCodeOf(ent), lsGet("cr_sigq_" + sid, []).length, ent.length)); } main.appendChild(h("p", { class: "small" }, h("a", { href: "#/j?s=" + sid, onclick: function () { lsSet("cr_profil", null); } }, "Changer de nom ou d'équipe"))); }
+    function wait() { if (shown === "w" + (st ? st.v : 0)) return; shown = "w" + (st ? st.v : 0); clear(main); main.appendChild(h("h1", {}, "Audit de départ · en attente de la prochaine question")); main.appendChild(AuditLaunch()); main.appendChild(h("p", {}, st ? "Votre animateur va ouvrir la suite. Gardez cette page ouverte." : "Connexion à la séance " + sid + "… Si rien n'apparaît, vérifiez que l'animateur a ouvert la tour de contrôle.")); if (st && st.teams) { main.appendChild(h("div", { class: "card" }, h("h3", {}, "Classement"), Classement(st.teams, prof.team))); var my = st.teams.filter(function (x) { return x.id === prof.team; })[0]; if (my) main.appendChild(h("div", { class: "card" }, h("h3", {}, "Votre entreprise Granuval"), Jauges(my.j))); if (my && my.acc) main.appendChild(Compte(my.acc)); var ent = []; Object.keys(cache).forEach(function (id) { var tt2 = task(id); if (!tt2 || tt2.sondage || ans[id] === undefined) return; var p = E.score(tt2, cache[id].key, ans[id]); if (p !== null) ent.push({ c: tt2.code, p: p }); }); if (ent.length) main.appendChild(badgeCard(byCodeOf(ent), lsGet("cr_sigq_" + sid, []).length, ent.length)); } main.appendChild(h("p", { class: "small" }, h("a", { href: "#/j?s=" + sid, onclick: function () { lsSet("cr_profil", null); } }, "Changer de nom ou d'équipe"))); }
     wait(); updNav(); flushSig(bus, sid);
   }
   function joinForm(sid) {
@@ -266,7 +266,7 @@
       var intro = !mq && !m2;
       (function step() {
         clear(main);
-        if (intro) { main.appendChild(h("h1", {}, "D'abord, lisez le relevé de l'audit")); main.appendChild(h("p", {}, "Les premières questions s'appuient sur ce relevé réel de melia.green. Parcourez les onglets, puis commencez.")); var go0 = function () { intro = false; step(); window.scrollTo(0, 0); }; if (window.AUDIT) { main.appendChild(AuditView()); main.appendChild(h("p", {}, h("button", { class: "pri", onclick: go0 }, "Commencer les questions"), " ", lockBtn())); } else { main.appendChild(unlockCard("Le relevé n'est pas public : saisissez le code donné par votre formateur, ou passez cette partie.")); main.appendChild(h("p", {}, h("button", { onclick: go0 }, "Passer sans l'audit"))); } return; }
+        if (intro) { main.appendChild(h("h1", {}, "D'abord, lisez le relevé de l'audit")); main.appendChild(h("p", {}, "Les premières questions s'appuient sur ce relevé réel de melia.green. Parcourez les onglets, puis commencez.")); var go0 = function () { intro = false; step(); window.scrollTo(0, 0); }; main.appendChild(AuditLaunch()); main.appendChild(h("p", {}, h("button", { class: "pri", onclick: go0 }, window.AUDIT ? "Commencer les questions" : "Passer sans l'audit"))); return; }
         if (i >= list.length) {
           main.appendChild(h("h1", {}, "Terminé : " + total + " / " + scored * 3 + " points"));
           var bc = byCodeOf(ent), box = h("div", { class: "card" }, h("h3", {}, "Vos points par compétence"));
@@ -386,11 +386,24 @@
     }
     draw(); main.appendChild(h("h1", {}, "Boîte à outils web")); main.appendChild(h("p", {}, "Des outils gratuits pour examiner un nom de domaine, comme le ferait un petit audit. Commencez par les outils passifs.")); main.appendChild(box);
   }
+  // Lancement de l'audit : code, puis déroulé des contrôles, puis résultats présentés en onglets
+  var launched = false;
+  function AuditLaunch() {
+    var box = h("div", { class: "card" });
+    if (!window.AUDIT) { box.appendChild(h("h2", {}, "🔎 Lancer l'audit de melia.green")); box.appendChild(unlockCard()); return box; }
+    if (launched) { box.appendChild(AuditView()); box.appendChild(h("p", {}, lockBtn())); return box; }
+    box.appendChild(h("h2", {}, "🔎 Audit de melia.green"));
+    box.appendChild(h("p", {}, "Contrôles passifs et actifs, réalisés avec l'accord de Mélia. Lancez l'audit : les résultats s'affichent à la fin."));
+    var list = h("ul", { class: "small", "aria-live": "polite" }), go = h("button", { class: "pri" }, "▶ Lancer l'audit");
+    var steps = ["Messagerie : SPF, DKIM, DMARC", "DNS : CAA, MTA-STS, hébergeur", "Certificat et chiffrement (SSL Labs)", "En-têtes de sécurité du site (MDN Observatory)", "Synthèse et plan d'action"];
+    go.onclick = function () { go.disabled = true; var i = 0; (function nx() { if (i < steps.length) { list.appendChild(h("li", {}, "✓ " + steps[i])); i++; setTimeout(nx, 700); } else { launched = true; clear(box); box.appendChild(h("h2", {}, "🔎 Résultats de l'audit")); box.appendChild(AuditView()); box.appendChild(h("p", {}, lockBtn())); } })(); };
+    box.appendChild(list); box.appendChild(go); return box;
+  }
   function viewAudit() {
     root.appendChild(h("div", { class: "bar" }, h("b", {}, "Jeu 23 · Relevé de l'audit"), h("a", { href: "#/" }, "Accueil")));
-    root.appendChild(h("main", { class: "wide" }, h("h1", {}, "Audit en direct de melia.green"), window.AUDIT ? h("div", {}, AuditView(), h("p", {}, lockBtn())) : unlockCard()));
+    root.appendChild(h("main", { class: "wide" }, h("h1", {}, "Audit en direct de melia.green"), AuditLaunch()));
   }
-  function openAudit() { modal("Relevé de l'audit de melia.green", window.AUDIT ? h("div", {}, AuditView(), h("p", {}, lockBtn())) : unlockCard()); }
+  function openAudit() { modal("Audit de melia.green", AuditLaunch()); }
   function viewHome() {
     root.appendChild(h("main", {}, h("h1", {}, "Jeu 23 · " + C.titre), h("p", {}, "Cybersécurité du quotidien : phishing, urgences, bons réflexes. " + C.sousTitre + "."), h("div", { class: "card" }, h("p", {}, h("a", { class: "btn pri", href: "#/j" }, "Je rejoins la séance")), h("p", {}, h("a", { class: "btn", href: "#/solo" }, "M'entraîner seul(e)")), h("p", {}, h("a", { class: "btn", href: "#/regles" }, "Règles du jeu")), h("p", {}, h("a", { class: "btn", href: "#/audit" }, "Relevé de l'audit de melia.green")), h("p", {}, h("a", { class: "btn", href: "#/outils" }, "Boîte à outils web"))), h("p", { class: "small" }, "Animateur : ", h("a", { href: "#/tour" }, "ouvrir la tour de contrôle"), " · © 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés.")));
   }
