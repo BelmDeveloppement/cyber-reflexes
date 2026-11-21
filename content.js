@@ -149,11 +149,11 @@
     relais: "wss://cpro-relay.belmdeveloppement.workers.dev", relaisHttp: "https://cpro-relay.belmdeveloppement.workers.dev", ntfy: "https://ntfy.sh",
     equipes: [{ id: "A", n: "Équipe A (jeton bleu)", s: "●" }, { id: "B", n: "Équipe B (jeton vert)", s: "▲" }, { id: "C", n: "Équipe C (jeton orange)", s: "■" }, { id: "D", n: "Équipe D (jeton rouge)", s: "◆" }, { id: "E", n: "Équipe E (jeton rose)", s: "★" }],
     jauges: [{ id: "a", n: "Argent", s: "●" }, { id: "p", n: "Production", s: "▲" }, { id: "d", n: "Données", s: "■" }, { id: "c", n: "Confiance", s: "◆" }],
-    blocs: { B0: "Ouverture", B8: "Audit en direct", B1: "Pourquoi et comment", B2: "Phishing", B3: "Quotidien", B4: "Cas réels", B5: "Boîte à outils", B6: "Bilan", B7: "Annexe Mélia (à valider)", J: "Jeu 23", J2: "Jeu 23 · manche 2" },
+    blocs: { B0: "Ouverture", B8: "Audit en direct", B9: "Repérage public", B1: "Pourquoi et comment", B2: "Phishing", B3: "Quotidien", B4: "Cas réels", B5: "Boîte à outils", B6: "Bilan", B7: "Annexe Mélia (à valider)", J: "Jeu 23", J2: "Jeu 23 · manche 2" },
     tasks: T
   };
   g.CR.tasks.forEach(function (t) { if (t.id === "P6") t.carte.pj = "RIB_nouveau.pdf"; if (t.id === "P8") t.carte.pj = "facture_2026-1142.pdf"; });
-  var CODE = { O1:"C",O2:"C",F1:"C",F2:"C",F3:"C",P1:"R",P2:"R",P3:"R",P4:"R",P5:"R",P6:"V",P7:"R",P8:"V",L1:"R",H1:"V",R1:"I",Q1:"A",Q2:"A",Q3:"P",Q4:"P",Q5:"P",Q6:"V",Q7:"P",Q8:"P",C1:"I",C2:"V",
+  var CODE = { O1:"C",O2:"C",F1:"C",F2:"C",F3:"C",P1:"R",P2:"R",P3:"R",P4:"R",P5:"R",P6:"V",P7:"R",P8:"V",L1:"R",H1:"V",R1:"I",Q1:"A",Q2:"A",Q3:"P",Q4:"P",Q5:"P",Q6:"R",Q7:"P",Q8:"P",C1:"I",C2:"V",
     AU1:"V",AU2:"V",AU3:"V",AU4:"V",AU5:"P",AU6:"V",S1:"R",S2:"R",S3:"P",S4:"V",S5:"A",S6:"V",S7:"I",S8:"I",S1b:"R",S2b:"R",S3b:"P",S4b:"V",S5b:"A",S6b:"V",S7b:"I",S8b:"I",M1:"V",M2:"V",T1:"C",D1:"C",Z1:"C",Z2:"C",Z3:"C" };
   var IMP = {
     S1: ["Le fournisseur rappelle : il n'a rien envoyé et demande si vous avez cliqué.", "Que lui répondez-vous, et qui prévenez-vous ensuite ?"],

@@ -26,7 +26,7 @@
       }).then(function (k) { return crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(p.iv) }, k, b64(p.ct)); });
     }).then(function (buf) {
       var d = JSON.parse(new TextDecoder().decode(buf));
-      if (!task("AU1")) { var at = -1; C.tasks.forEach(function (t, i) { if (at < 0 && t.id === "F1") at = i; }); var args = [at < 0 ? C.tasks.length : at, 0].concat(d.tasks); Array.prototype.splice.apply(C.tasks, args); }
+      if (!task("AU1")) { [["F1", /^AU/], ["P1", /^OS/]].forEach(function (z) { var at = -1; C.tasks.forEach(function (t, i) { if (at < 0 && t.id === z[0]) at = i; }); var args = [at < 0 ? C.tasks.length : at, 0].concat(d.tasks.filter(function (t) { return z[1].test(t.id); })); Array.prototype.splice.apply(C.tasks, args); }); }
       window.CR_PACK_KEYS = d.keys; if (window.CR_KEYS) Object.keys(d.keys).forEach(function (k) { window.CR_KEYS[k] = d.keys[k]; });
       window.AUDIT = d.audit; return true;
     });
@@ -250,7 +250,7 @@
       var t = task(st.task); if (!t) { if (/^AU/.test(st.task)) { if (shown === "L" + st.task) return; shown = "L" + st.task; clear(main); main.appendChild(h("h1", {}, "Question d'audit")); main.appendChild(unlockCard("Cette question s'appuie sur le relevé de l'audit. Saisissez le code donné par l'animateur.")); return; } return wait(); }
       if (st.phase === "open") {
         if (shown === "o" + t.id) return; shown = "o" + t.id; clear(main); main.appendChild(Enonce(t, function (k) { var l = insp[t.id] = insp[t.id] || []; if (l.indexOf(k) < 0) { l.push(k); lsSet("cr_ins_" + sid, insp); } }));
-        if (t.bloc === "B8") main.appendChild(h("p", {}, h("button", { onclick: openAudit }, "📄 Voir le relevé de l'audit")));
+        if (t.bloc === "B8" || t.bloc === "B9") main.appendChild(h("p", {}, h("button", { onclick: function () { openAudit(t.bloc === "B9" ? "oi" : null); } }, t.bloc === "B9" ? "📄 Voir le repérage public" : "📄 Voir le relevé de l'audit")));
         var btn = h("button", { class: "pri", disabled: true }, "Envoyer ma réponse"), okmsg = h("p", { class: "small" }, ans[t.id] ? "✓ Réponse envoyée. Vous pouvez la modifier avant la correction." : "");
         curInput = Input(t, prof.pid, function (v) { ans[t.id] = v; lsSet("cr_rep_" + sid, ans); btn.disabled = !curInput.valid(); okmsg.textContent = ""; }, ans[t.id]);
         btn.disabled = !curInput.valid();
@@ -356,7 +356,7 @@
       var m = h("main", { class: "wide" }), cols = h("div", { class: "cols" }), L = h("div", { class: "card tl" }), M = h("div"), R = h("div");
       L.appendChild(h("h3", {}, "Questions")); var last = ""; C.tasks.forEach(function (t) { if (t.bloc !== last) { last = t.bloc; L.appendChild(h("p", { class: "small" }, h("b", {}, C.blocs[t.bloc]))); } var mark = S.res[t.id] ? "✓ " : S.cur === t.id && S.phase === "open" ? "● " : "○ "; L.appendChild(h("button", { class: S.cur === t.id ? "cur" : "", onclick: function () { openTask(t.id); } }, mark + t.id + " · " + t.titre)); });
       if (slide.pending) M.appendChild(h("div", { class: "msg" }, h("b", {}, "Diapositive reçue : " + slide.pending.replace(":c", " (corrigé)") + " "), h("button", { class: "pri", onclick: function () { applySlide(slide.pending); } }, (/:c$/.test(slide.pending) ? "Révéler le corrigé de " : "Ouvrir la question ") + slide.pending.replace(":c", ""))));
-      var manual = h("input", { type: "text", placeholder: "Plan B : identifiant (ex. S3)", "aria-label": "Identifiant manuel" }); M.appendChild(h("div", { class: "card" }, h("label", {}, h("input", { type: "checkbox", checked: S.auto ? true : false, onchange: function (e) { S.auto = e.target.checked; save(); } }), " Synchro PowerPoint automatique : ouvre la question et révèle le corrigé quand la diapositive arrive (décochez pour bloquer : un bouton de confirmation apparaît)"), h("p", {}, manual, h("button", { onclick: function () { var t = task(manual.value.trim().toUpperCase()); if (t) openTask(t.id); } }, "Ouvrir"))));
+      var manual = h("input", { type: "text", placeholder: "Plan B : identifiant (ex. S3)", "aria-label": "Identifiant manuel" }); M.appendChild(h("div", { class: "card" }, h("label", {}, h("input", { type: "checkbox", checked: S.auto ? true : false, onchange: function (e) { S.auto = e.target.checked; save(); } }), " Synchro PowerPoint automatique : ouvre la question et révèle le corrigé quand la diapositive arrive (décochez pour bloquer : un bouton de confirmation apparaît)"), h("p", {}, manual, h("button", { onclick: function () { var v = manual.value.trim().toUpperCase(), t = C.tasks.filter(function (x) { return x.id.toUpperCase() === v; })[0]; if (t) openTask(t.id); } }, "Ouvrir"))));
       if (!window.AUDIT) M.appendChild(unlockCard("Animateur : saisissez le code audit pour activer les questions AU1 à AU6 et le relevé."));
       var cur = S.cur ? task(S.cur) : null;
       if (cur) { M.appendChild(h("div", { class: "nav" }, h("button", { onclick: function () { go(-1); } }, "◀ Précédente"), h("button", { onclick: function () { go(1); } }, "Suivante ▶"))); M.appendChild(h("h2", {}, cur.id + " · " + cur.titre + (S.phase === "revealed" ? " (corrigé affiché)" : S.phase === "open" ? " (ouverte)" : ""))); M.appendChild(Enonce(cur));
@@ -411,11 +411,11 @@
     draw(); main.appendChild(h("h1", {}, "Boîte à outils web")); main.appendChild(h("p", {}, "Des outils gratuits pour examiner un nom de domaine, comme le ferait un petit audit. Commencez par les outils passifs.")); main.appendChild(box);
   }
   // Lancement de l'audit : code, puis déroulé des contrôles, puis résultats présentés en onglets
-  var launched = false;
+  var launched = false, launchTab = null;
   function AuditLaunch() {
     var box = h("div", { class: "card" });
     if (!window.AUDIT) { box.appendChild(h("h2", {}, "🔎 Lancer l'audit de melia.green")); box.appendChild(unlockCard()); return box; }
-    if (launched) { box.appendChild(AuditView()); box.appendChild(h("p", {}, lockBtn())); return box; }
+    if (launched || launchTab) { box.appendChild(AuditView(launchTab)); box.appendChild(h("p", {}, lockBtn())); return box; }
     box.appendChild(h("h2", {}, "🔎 Audit de melia.green"));
     box.appendChild(h("p", {}, "Contrôles passifs et actifs, réalisés avec l'accord de Mélia. Lancez l'audit : les résultats s'affichent à la fin."));
     var list = h("ul", { class: "small", "aria-live": "polite" }), go = h("button", { class: "pri" }, "▶ Lancer l'audit");
@@ -427,7 +427,7 @@
     root.appendChild(h("div", { class: "bar" }, h("b", {}, "Jeu 23 · Relevé de l'audit"), h("a", { href: "#/" }, "Accueil")));
     root.appendChild(h("main", { class: "wide" }, h("h1", {}, "Audit en direct de melia.green"), AuditLaunch()));
   }
-  function openAudit() { modal("Audit de melia.green", AuditLaunch()); }
+  function openAudit(tab) { launchTab = typeof tab === "string" ? tab : null; modal("Audit de melia.green", AuditLaunch()); }
   // ───────── Code animateur : protège la tour et l'écran projeté (empreinte PBKDF2 dans animateur.json, jamais le code)
   function animOk() { try { return sessionStorage.getItem("cr_an") === "1"; } catch (e) { return false; } }
   function animGate(next) {

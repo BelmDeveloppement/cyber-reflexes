@@ -12,7 +12,8 @@ let bad = 0; const ok = (c, m) => { console.log((c ? "OK     " : "ÉCHEC  ") + m
   const pl = await mk("joueur", 1100); await pl.goto(ORI + "/index.html#/j" + q); await pl.fill("input[type=text]", "Test"); await pl.click("button:has-text('Équipe A')"); await pl.click("text=Rejoindre la part"); await tour.waitForSelector("text=Joueurs (1)");
   const vides = [];
   for (const id of ids) {
-    if (!(await tour.locator("input[placeholder^='Plan B']").count())) { console.log("TOUR VIDE avant", id, errs.slice(-1)); break; } await tour.fill("input[placeholder^='Plan B']", id); await tour.click("button:has-text('Ouvrir')"); await tour.waitForTimeout(250);
+    if (!(await tour.locator("input[placeholder^='Plan B']").count())) { console.log("TOUR VIDE avant", id, errs.slice(-1)); break; } await tour.fill("input[placeholder^='Plan B']", id); await tour.click("button:has-text('Ouvrir')"); await tour.waitForTimeout(450);
+    if (!(await tour.locator("h2", { hasText: id }).count())) vides.push(id + "(non ouverte)");
     const b = tour.locator("button:has-text('Révéler la correction')"); if (await b.count()) { await b.click(); await tour.waitForTimeout(350); }
     const tl = ((await tour.textContent("body")) || "").length, pt = ((await pl.textContent("body")) || "").length;
     if (tl < 600 || pt < 200 || await tour.locator("text=n'a pas pu s'afficher").count() || await pl.locator("text=n'a pas pu s'afficher").count()) vides.push(id);
