@@ -150,6 +150,22 @@
     equipes: [{ id: "A", n: "Équipe A (jeton bleu)", s: "●" }, { id: "B", n: "Équipe B (jeton vert)", s: "▲" }, { id: "C", n: "Équipe C (jeton orange)", s: "■" }, { id: "D", n: "Équipe D (jeton rouge)", s: "◆" }, { id: "E", n: "Équipe E (jeton rose)", s: "★" }],
     jauges: [{ id: "a", n: "Argent", s: "●" }, { id: "p", n: "Production", s: "▲" }, { id: "d", n: "Données", s: "■" }, { id: "c", n: "Confiance", s: "◆" }],
     blocs: { B0: "Ouverture", B8: "Audit en direct", B9: "Repérage public", B1: "Pourquoi et comment", B2: "Phishing", B3: "Quotidien", B4: "Cas réels", B5: "Boîte à outils", B6: "Bilan", B7: "Annexe Mélia (à valider)", J: "Jeu 23", J2: "Jeu 23 · manche 2" },
+    // Durées prévisionnelles par bloc (estimation à vérifier en situation réelle, jamais chronométrée — voir claude/proposition-modularite-duree-jeu23.md).
+    // "obligatoire" = toujours inclus, quelle que soit la durée de la séance (3h à 7h). "socle" = inclus par défaut. "complement" = activable selon la durée commandée.
+    catalogue: [
+      { bloc: "B0", nom: "Ouverture", duree: 10, niveau: "socle" },
+      { bloc: "B8", nom: "Audit en direct (AU)", duree: 50, niveau: "obligatoire" },
+      { bloc: "B9", nom: "Repérage public (OSINT)", duree: 28, niveau: "obligatoire" },
+      { bloc: "B1", nom: "Pourquoi et comment", duree: 17, niveau: "socle" },
+      { bloc: "B2", nom: "Phishing", duree: 54, niveau: "socle" },
+      { bloc: "B3", nom: "Quotidien", duree: 40, niveau: "socle" },
+      { bloc: "B4", nom: "Cas réels", duree: 18, niveau: "complement" },
+      { bloc: "B5", nom: "Boîte à outils", duree: 15, niveau: "complement" },
+      { bloc: "B6", nom: "Bilan", duree: 15, niveau: "socle" },
+      { bloc: "B7", nom: "Annexe Mélia (si applicable au client)", duree: 13, niveau: "complement" },
+      { bloc: "J", nom: "Scénario · manche 1 (par scène)", duree: 7, parScene: true, min: 2, max: 8, niveau: "socle" },
+      { bloc: "J2", nom: "Scénario · manche 2 (par scène)", duree: 6, parScene: true, min: 0, max: 8, niveau: "complement" }
+    ],
     tasks: T
   };
   g.CR.tasks.forEach(function (t) { if (t.id === "P6") t.carte.pj = "RIB_nouveau.pdf"; if (t.id === "P8") t.carte.pj = "facture_2026-1142.pdf"; });

@@ -461,6 +461,25 @@
   function viewHome() {
     root.appendChild(h("main", {}, h("h1", {}, "Jeu 23 · " + C.titre), h("p", {}, "Cybersécurité du quotidien : phishing, urgences, bons réflexes. " + C.sousTitre + "."), h("div", { class: "card" }, h("p", {}, h("a", { class: "btn pri", href: "#/j" }, "Je rejoins la séance depuis mon PC")), h("p", { class: "small" }, "PC d\u0027abord. Le téléphone ne sert qu\u0027en secours."), h("p", {}, h("a", { class: "btn", href: "#/solo" }, "M'entraîner seul(e)")), h("p", {}, h("a", { class: "btn", href: "#/regles" }, "Règles du jeu")), h("p", {}, h("a", { class: "btn", href: "#/audit" }, "Relevé de l'audit de melia.green")), h("p", {}, h("a", { class: "btn", href: "#/outils" }, "Boîte à outils web"))), h("p", { class: "small" }, "Animateur : ", h("a", { href: "#/tour" }, "ouvrir la tour de contrôle"), " · © 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés.")));
   }
+  // ───────── Configuration de séance (durée variable, 3h à 7h) : ?config=<nom> charge sessions/<nom>.json
+  // Sans ce paramètre, comportement inchangé (toutes les tâches restent présentes, comme avant cette fonctionnalité).
+  function applyConfig() {
+    var m = /[?&]config=([^&]+)/.exec(location.hash + location.search);
+    if (!m) return Promise.resolve();
+    return fetch("sessions/" + decodeURIComponent(m[1]) + ".json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (cfg) {
+      if (!cfg) return;
+      var comp = cfg.complements || ["B2b", "B4", "B5", "B7"];
+      var n1 = cfg.scenario1 == null ? 8 : cfg.scenario1, n2 = cfg.scenario2 == null ? 8 : cfg.scenario2;
+      var ordre1 = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"].slice(0, n1);
+      var ordre2 = ["S1b", "S2b", "S3b", "S4b", "S5b", "S6b", "S7b", "S8b"].slice(0, n2);
+      C.tasks = C.tasks.filter(function (t) {
+        if (t.jeu && t.manche !== 2) return ordre1.indexOf(t.id) !== -1;
+        if (t.manche === 2) return ordre2.indexOf(t.id) !== -1;
+        if (t.bloc === "B2b" || t.bloc === "B4" || t.bloc === "B5" || t.bloc === "B7") return comp.indexOf(t.bloc) !== -1;
+        return true;
+      });
+    }).catch(function () {});
+  }
   var cleanup = [];
   function route() {
     clear(root); var r = (location.hash || "#/").replace(/\?.*$/, ""); var TT = { "#/j": "Réflexes · ÉCRAN JOUEUR", "#/tour": "Réflexes · TOUR DE CONTRÔLE", "#/ecran": "Réflexes · ÉCRAN PROJETÉ", "#/solo": "Réflexes · Entraînement seul", "#/audit": "Réflexes · Audit", "#/regles": "Réflexes · Règles", "#/outils": "Réflexes · Boîte à outils" }; document.title = TT[r] || "Jeu 23 · Réflexes";
@@ -468,5 +487,6 @@
   }
   window.addEventListener("hashchange", function () { location.reload(); });
   var ac = null; try { ac = sessionStorage.getItem("cr_ac"); } catch (e) {}
-  if (ac) unlockPack(ac).then(route, function () { try { sessionStorage.removeItem("cr_ac"); } catch (e) {} route(); }); else route();
+  function afterUnlock() { applyConfig().then(route); }
+  if (ac) unlockPack(ac).then(afterUnlock, function () { try { sessionStorage.removeItem("cr_ac"); } catch (e) {} afterUnlock(); }); else afterUnlock();
 })();
