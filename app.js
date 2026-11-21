@@ -425,7 +425,7 @@
   }
   function viewAudit() {
     root.appendChild(h("div", { class: "bar" }, h("b", {}, "Jeu 23 · Relevé de l'audit"), h("a", { href: "#/" }, "Accueil")));
-    root.appendChild(h("main", { class: "wide" }, h("h1", {}, "Audit en direct de melia.green"), AuditLaunch()));
+    root.appendChild(h("main", { class: "wide" }, h("h1", {}, "Audit en direct de melia.green"), AuditLaunch(), h("p", {}, h("button", { onclick: function () { openAudit("oi"); } }, "🔎 Repérage public (OSINT)"))));
   }
   function openAudit(tab) { launchTab = typeof tab === "string" ? tab : null; modal("Audit de melia.green", AuditLaunch()); }
   // ───────── Code animateur : protège la tour et l'écran projeté (empreinte PBKDF2 dans animateur.json, jamais le code)
