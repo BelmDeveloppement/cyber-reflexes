@@ -4,7 +4,7 @@
   var LAB = { ok: "✓ Conforme", warn: "▲ À confirmer", bad: "✗ Manque" };
   function el(t, a, kids) { var e = document.createElement(t); if (a) Object.keys(a).forEach(function (k) { if (k === "class") e.className = a[k]; else e.setAttribute(k, a[k]); }); (kids || []).forEach(function (c) { e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); }); return e; }
   function tag(k, t) { return el("span", { class: "tg " + k }, [t || LAB[k]]); }
-  function table(head, rows) { var t = el("table", { class: "aut" }); t.appendChild(el("thead", {}, [el("tr", {}, head.map(function (x) { return el("th", {}, [x]); }))])); var b = el("tbody"); rows.forEach(function (r) { b.appendChild(el("tr", {}, r.map(function (c) { return el("td", {}, [typeof c === "string" ? c : c]); }))); }); t.appendChild(b); return el("div", { class: "tw" }, [t]); }
+  function table(head, rows) { var t = el("table", { class: "aut" }); t.appendChild(el("thead", {}, [el("tr", {}, head.map(function (x) { return el("th", {}, [x]); }))])); var b = el("tbody"); rows.forEach(function (r) { b.appendChild(el("tr", {}, r.map(function (c, i) { return el("td", { "data-l": head[i] || "" }, [typeof c === "string" ? c : c]); }))); }); t.appendChild(b); return el("div", { class: "tw" }, [t]); }
   function stat(n, l, k) { return el("div", { class: "st" }, [el("div", { class: "n " + (k || "") }, [String(n)]), el("div", { class: "l" }, [l])]); }
   function code(t) { return el("code", {}, [t]); }
   function panel(id, A) {

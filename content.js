@@ -147,7 +147,7 @@
   g.CR = {
     numero: 23, titre: "Réflexes", sousTitre: "Lundi chez Granuval", adresse: "https://belmdeveloppement.github.io/cyber-reflexes/", sid: "MELIA7K3Q9X", prefixe: "ac",
     relais: "wss://cpro-relay.belmdeveloppement.workers.dev", relaisHttp: "https://cpro-relay.belmdeveloppement.workers.dev", ntfy: "https://ntfy.sh",
-    equipes: [{ id: "A", n: "Équipe A", s: "●" }, { id: "B", n: "Équipe B", s: "▲" }, { id: "C", n: "Équipe C", s: "■" }, { id: "D", n: "Équipe D", s: "◆" }],
+    equipes: [{ id: "A", n: "Équipe A (jeton bleu)", s: "●" }, { id: "B", n: "Équipe B (jeton vert)", s: "▲" }, { id: "C", n: "Équipe C (jeton orange)", s: "■" }, { id: "D", n: "Équipe D (jeton rouge)", s: "◆" }, { id: "E", n: "Équipe E (jeton rose)", s: "★" }],
     jauges: [{ id: "a", n: "Argent", s: "●" }, { id: "p", n: "Production", s: "▲" }, { id: "d", n: "Données", s: "■" }, { id: "c", n: "Confiance", s: "◆" }],
     blocs: { B0: "Ouverture", B8: "Audit en direct", B1: "Pourquoi et comment", B2: "Phishing", B3: "Quotidien", B4: "Cas réels", B5: "Boîte à outils", B6: "Bilan", B7: "Annexe Mélia (à valider)", J: "Jeu 23", J2: "Jeu 23 · manche 2" },
     tasks: T

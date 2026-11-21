@@ -7,7 +7,7 @@ const SID = "V" + Date.now().toString(36).toUpperCase(), ORI = "http://localhost
 let bad = 0; const ok = (c, m) => { console.log((c ? "OK     " : "ÉCHEC  ") + m); if (!c) bad++; };
 (async () => {
   const br = await chromium.launch(), errs = [];
-  const mk = async (n, w) => { const c = await br.newContext({ viewport: { width: w, height: 900 } }); await c.addInitScript((k) => sessionStorage.setItem("cr_ac", k), CODE); const p = await c.newPage(); p.on("pageerror", (e) => errs.push(n + " : " + e.message)); return p; };
+  const mk = async (n, w) => { const c = await br.newContext({ viewport: { width: w, height: 900 } }); await c.addInitScript((k) => { sessionStorage.setItem("cr_ac", k); sessionStorage.setItem("cr_an", "1"); }, CODE); const p = await c.newPage(); p.on("pageerror", (e) => errs.push(n + " : " + e.message)); return p; };
   const tour = await mk("tour", 1300); await tour.goto(ORI + "/index.html#/tour" + q); await tour.waitForSelector("text=Relais OK", { timeout: 15000 });
   const pl = await mk("joueur", 1100); await pl.goto(ORI + "/index.html#/j" + q); await pl.fill("input[type=text]", "Test"); await pl.click("button:has-text('Équipe A')"); await pl.click("text=Rejoindre la part"); await tour.waitForSelector("text=Joueurs (1)");
   const vides = [];

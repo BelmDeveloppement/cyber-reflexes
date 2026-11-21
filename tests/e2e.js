@@ -2,11 +2,12 @@
 const { chromium } = require("playwright");
 const SID = "T" + Date.now().toString(36).toUpperCase(), ORI = "http://localhost:8765", RLY = "ws://localhost:8787", HTTP = "http://localhost:8787";
 let bad = 0; const ok = (c, m) => { console.log((c ? "OK     " : "ÉCHEC  ") + m); if (!c) bad++; };
+const ANIM = require("fs").readFileSync(__dirname + "/../private/code-animateur.txt", "utf8").trim();
 const CODE = require("fs").readFileSync(__dirname + "/../private/code-audit.txt", "utf8").trim();
 const q = "?s=" + SID + "&relay=" + encodeURIComponent(RLY);
 (async () => {
   const br = await chromium.launch(); const errs = [];
-  const mk = async (name) => { const c = await br.newContext({ viewport: { width: 390, height: 800 } }); if (name !== "verrou") await c.addInitScript((k) => { try { sessionStorage.setItem("cr_ac", k); } catch (e) {} }, CODE); const p = await c.newPage(); p.on("pageerror", (e) => errs.push(name + " : " + e.message)); p.on("console", (m) => { if (m.type() === "error" && !/ERR_TUNNEL|ntfy/.test(m.text())) errs.push(name + " console : " + m.text()); }); return p; };
+  const mk = async (name) => { const c = await br.newContext({ viewport: { width: 390, height: 800 } }); if (name !== "verrou") await c.addInitScript((k) => { try { sessionStorage.setItem("cr_ac", k); } catch (e) {} }, CODE); if (name !== "gate") await c.addInitScript(() => { try { sessionStorage.setItem("cr_an", "1"); } catch (e) {} }); const p = await c.newPage(); p.on("pageerror", (e) => errs.push(name + " : " + e.message)); p.on("console", (m) => { if (m.type() === "error" && !/ERR_TUNNEL|ntfy/.test(m.text())) errs.push(name + " console : " + m.text()); }); return p; };
   const tour = await mk("tour"); await tour.setViewportSize({ width: 1300, height: 900 });
   await tour.goto(ORI + "/index.html#/tour" + q); await tour.waitForSelector("text=Relais OK", { timeout: 15000 }); ok(true, "tour connectée au relais");
   const joueurs = [["Alice", "Équipe A"], ["Bruno", "Équipe A"], ["Chloé", "Équipe B"]]; const P = [];
@@ -26,8 +27,7 @@ const q = "?s=" + SID + "&relay=" + encodeURIComponent(RLY);
   ok((await P[0].textContent("body")).includes("Classement des équipes"), "classement affiché");
   // Signal de diapositive : le complément publie sur le sujet « s » (POST /pub), la tour propose la scène
   const r = await fetch(HTTP + "/pub?room=" + SID + "&t=ac" + SID + "s", { method: "POST", body: JSON.stringify({ k: "S", n: 41, g: "S2", _u: "u" + Date.now() }) }); ok(r.ok, "publication HTTP du complément acceptée");
-  await tour.waitForSelector("button:has-text('Ouvrir la question S2')", { timeout: 10000 }); ok(true, "tour : bouton de confirmation pour la diapo S2");
-  await tour.click("button:has-text('Ouvrir la question S2')");
+  ok(true, "synchro automatique : la diapo S2 ouvre la question sans clic");
   for (const p of P) await p.waitForSelector("text=Le faux support informatique", { timeout: 10000 });
   // Ordre : on remet l'ordre attendu en cliquant sur les boutons ▲
   const attendu = ["Ne rien donner et raccrocher", "Noter l'heure, le numéro et ce qui a été demandé", "Prévenir l'informatique ou la direction par le canal habituel", "Si un code a été reçu sans l'avoir demandé, changer le mot de passe du compte"];
@@ -66,7 +66,12 @@ const q = "?s=" + SID + "&relay=" + encodeURIComponent(RLY);
   await tour.click("button:has-text('Approuver')"); await tour.waitForSelector("text=APPROUVÉ"); ok(true, "tour : signalement approuvé");
   const avant = await tour.textContent("h2"); await tour.click("button:has-text('Suivante ▶')"); await tour.waitForFunction((a) => document.querySelector("h2") && document.querySelector("h2").textContent !== a, avant); ok(true, "tour : bouton Suivante change de question");
   await tour.click("button:has-text('◀ Précédente')"); await tour.waitForFunction((a) => document.querySelector("h2").textContent === a, avant); ok(true, "tour : bouton Précédente revient");
-  await tour.click("button:has-text('Vue projetable')"); ok(!(await tour.textContent("body")).includes("Signalements"), "vue projetable : aucun signalement affiché"); await tour.click("button:has-text('Vue complète')");
+  const [ec] = await Promise.all([tour.context().waitForEvent("page"), tour.click("button:has-text('Écran projeté')")]); await ec.waitForSelector("text=Écran projeté · séance"); await ec.waitForTimeout(2000);
+  ok(!(await ec.textContent("body")).includes("Signalements") && /question en cours|corrigé|Classement/.test(await ec.textContent("body")) && !(await ec.textContent("body")).includes("Détail du compte"), "écran projeté : nouvel onglet, lecture seule, sans signalement ni détail du compte"); await ec.close();
+  const gt = await mk("gate"); await gt.goto(ORI + "/index.html#/tour" + q); await gt.waitForSelector("text=Espace animateur"); ok(!(await gt.textContent("body")).includes("Résultats en direct") && (await gt.locator("text=Relais OK").count()) === 0, "tour : fermée sans code animateur");
+  await gt.fill("input[aria-label='Code animateur']", "AAAA-AAAA"); await gt.click("button:has-text('Entrer')"); await gt.waitForSelector("text=Code incorrect"); ok(true, "tour : mauvais code refusé");
+  await gt.fill("input[aria-label='Code animateur']", ANIM); await gt.click("button:has-text('Entrer')"); await gt.waitForSelector("text=Relais OK", { timeout: 15000 }); ok(true, "tour : bon code animateur accepté");
+  const pc2 = await mk("Alice2"); await pc2.goto(ORI + "/index.html#/j" + q); await pc2.fill("input[type=text]", "alice"); await pc2.click("button:has-text('Équipe A')"); await pc2.click("text=Rejoindre la part"); await tour.waitForTimeout(1500); ok((await tour.textContent("body")).includes("Joueurs (3)"), "même prénom et même équipe sur un 2e appareil : joueur non compté deux fois");
   // Mode solo
   const solo = await mk("solo"); await solo.goto(ORI + "/index.html#/solo?q=F1"); await solo.waitForSelector("text=/Question [0-9]+ \\//", { timeout: 10000 }); ok(true, "mode solo démarré");
   await solo.waitForSelector("ol.ol"); await solo.click("text=Valider"); await solo.waitForSelector("text=À retenir"); ok(true, "mode solo : correction affichée");
@@ -86,6 +91,8 @@ const q = "?s=" + SID + "&relay=" + encodeURIComponent(RLY);
   const so = await mk("solo3"); await so.goto(ORI + "/index.html#/solo"); await so.waitForSelector("text=D'abord, lisez le relevé"); await so.click("button:has-text(\"Lancer l'audit\")"); await so.waitForSelector("text=Résultats de l'audit", { timeout: 8000 }); await so.click("button:has-text('Commencer les questions')"); await so.waitForSelector("text=Lire le SPF"); ok(true, "solo : relevé d'abord, puis AU1");
   await P[0].click("button:has-text('Fermer')").catch(() => {}); await P[0].click("button.tb:has-text('Audit')"); await P[0].click("[role=dialog] >> button:has-text(\"Lancer l'audit\")").catch(() => {}); await P[0].waitForSelector("[role=dialog] >> text=Relevé du 20/11/2026", { timeout: 8000 }); ok(true, "joueur : bouton Audit ouvre le relevé"); await P[0].click("button:has-text('Fermer')");
   const s2 = await mk("solo2"); await s2.goto(ORI + "/index.html#/solo?m=2"); await s2.waitForSelector("text=manche 2", { timeout: 8000 }); await s2.waitForSelector("text=Question 1 / 8"); ok(true, "solo manche 2 : 8 questions");
+  const r2 = await fetch(HTTP + "/pub?room=" + SID + "&t=ac" + SID + "s", { method: "POST", body: JSON.stringify({ k: "S", n: 50, g: "S3:c", _u: "c" + Date.now() }) }); await tour.waitForTimeout(1200); ok(r2.ok && (await tour.textContent("body")).includes("corrigé affiché"), "synchro : la diapositive Corrigé révèle la correction (auto)");
+  const r3 = await fetch(HTTP + "/pub?room=" + SID + "&t=ac" + SID + "s", { method: "POST", body: JSON.stringify({ k: "S", n: 60, g: "", _u: "d" + Date.now() }) }); await tour.waitForTimeout(1200); ok(r3.ok && (await tour.textContent("body")).includes("Choisissez une question"), "synchro : diapositive sans question remet les écrans en attente");
   ok(errs.length === 0, "aucune erreur JavaScript" + (errs.length ? " : " + errs.slice(0, 4).join(" | ") : ""));
   await br.close(); console.log(bad ? bad + " échec(s)" : "Tous les tests de bout en bout passent"); process.exit(bad ? 1 : 0);
 })().catch((e) => { console.log("ERREUR", e.message); process.exit(2); });

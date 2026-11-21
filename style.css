@@ -62,3 +62,6 @@ textarea{width:100%;font:inherit;padding:8px;border:1px solid var(--line);border
 .tw{overflow-x:auto}table.aut td,table.aut th{vertical-align:top}table.aut th{font-size:.8rem;text-transform:uppercase;color:var(--mut)}code{font-family:ui-monospace,Consolas,monospace;font-size:.85rem;background:#eef2f6;padding:1px 5px;border-radius:4px;word-break:break-all}
 .lec{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:8px;padding:10px;margin:10px 0}
 .st .n.bad,.st .n.ok,.st .n.warn{background:none;border:0;padding:0;margin:0}.tg.bad,.tg.ok{border:0}
+.nuage{line-height:1.5}.nuage span{display:inline-block;margin:0 .35em;font-weight:600;color:var(--okd)}
+.ecran h1{font-size:2.4rem}.ecran .lead{font-size:1.5rem}.ecran .nuage{font-size:1.5rem}.ecran h2{font-size:1.6rem}
+@media (max-width:640px){table.aut,table.aut tbody,table.aut tr,table.aut td{display:block;width:100%}table.aut thead{display:none}table.aut tr{border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin:8px 0;background:#fff}table.aut td{border:0;padding:3px 0}table.aut td::before{content:attr(data-l) " : ";font-weight:700;color:var(--mut);font-size:.8rem}}
