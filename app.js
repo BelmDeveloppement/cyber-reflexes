@@ -145,10 +145,10 @@
     var box = h("div"), pts = E.score(t, k, ans);
     if (pts !== null && !noScore) box.appendChild(h("div", { class: "card " + (pts >= 2 ? "good" : "bad") }, h("div", { class: "pts" }, (pts >= 2 ? "✓ " : "✗ ") + pts + " / 3 points"), pts >= 2 ? "Bien joué." : "À retenir : lisez la correction ci-dessous."));
     function row(good, mine, label, why) { return h("div", { class: "row " + (good ? "good" : mine ? "bad" : "neu") }, h("b", {}, (good ? "✓ " : mine ? "✗ " : "○ ") + label), mine ? h("span", {}, "  ◀ votre choix") : null, why ? h("div", { class: "small" }, why) : null); }
-    if (t.type === "single") (t.options).forEach(function (o) { box.appendChild(row(o.id === k.best, ans === o.id, o.t + (k.ok && k.ok.indexOf(o.id) >= 0 ? " (partiellement acceptable, 1 point)" : ""), k.why[o.id])); });
-    if (t.type === "multi") (t.options).forEach(function (o) { box.appendChild(row(k.good.indexOf(o.id) >= 0, Array.isArray(ans) && ans.indexOf(o.id) >= 0, o.t, k.why[o.id])); });
-    if (t.type === "order") { box.appendChild(h("h3", {}, "Ordre attendu")); k.order.forEach(function (id, i) { box.appendChild(h("div", { class: "row good" }, h("b", {}, (i + 1) + ". " + optLabel(t, id)), h("div", { class: "small" }, k.why[id]))); }); if (Array.isArray(ans)) box.appendChild(h("p", { class: "small" }, "Votre ordre : " + ans.map(function (id) { return optLabel(t, id); }).join(" → "))); }
-    if (t.type === "form") t.champs.forEach(function (f) { var ok = ans && ans[f.id] === k.ans[f.id]; box.appendChild(h("div", { class: "row " + (ok ? "good" : "bad") }, h("b", {}, (ok ? "✓ " : "✗ ") + f.l), h("div", {}, "Réponse attendue : " + fieldOpt(f, k.ans[f.id]) + (ok ? "" : " · la vôtre : " + (ans && ans[f.id] ? fieldOpt(f, ans[f.id]) : "—"))), h("div", { class: "small" }, k.why[f.id]))); });
+    if (!t.sondage && t.type === "single") (t.options).forEach(function (o) { box.appendChild(row(o.id === k.best, ans === o.id, o.t + (k.ok && k.ok.indexOf(o.id) >= 0 ? " (partiellement acceptable, 1 point)" : ""), k.why[o.id])); });
+    if (!t.sondage && t.type === "multi") (t.options).forEach(function (o) { box.appendChild(row(k.good.indexOf(o.id) >= 0, Array.isArray(ans) && ans.indexOf(o.id) >= 0, o.t, k.why[o.id])); });
+    if (!t.sondage && t.type === "order") { box.appendChild(h("h3", {}, "Ordre attendu")); k.order.forEach(function (id, i) { box.appendChild(h("div", { class: "row good" }, h("b", {}, (i + 1) + ". " + optLabel(t, id)), h("div", { class: "small" }, k.why[id]))); }); if (Array.isArray(ans)) box.appendChild(h("p", { class: "small" }, "Votre ordre : " + ans.map(function (id) { return optLabel(t, id); }).join(" → "))); }
+    if (t.type === "form" && k.ans) t.champs.forEach(function (f) { var ok = ans && ans[f.id] === k.ans[f.id]; box.appendChild(h("div", { class: "row " + (ok ? "good" : "bad") }, h("b", {}, (ok ? "✓ " : "✗ ") + f.l), h("div", {}, "Réponse attendue : " + fieldOpt(f, k.ans[f.id]) + (ok ? "" : " · la vôtre : " + (ans && ans[f.id] ? fieldOpt(f, ans[f.id]) : "—"))), h("div", { class: "small" }, k.why[f.id]))); });
     if (t.liens) { box.appendChild(h("h3", {}, "Adresses réelles")); t.liens.forEach(function (l, i) { box.appendChild(h("p", { class: "small" }, "Lien " + "ABCDE"[i] + " : ", h("span", { class: "url" }, l.url))); }); }
     box.appendChild(h("div", { class: "card" }, h("h3", {}, "À retenir"), h("p", {}, k.expl), k.src && k.src.length ? h("p", { class: "small" }, "Source : ", k.src.map(function (s, i) { return [i ? " · " : "", s.u ? h("a", { href: s.u, target: "_blank", rel: "noopener" }, s.t) : s.t]; })) : null));
     return box;
@@ -165,6 +165,19 @@
 
   var CODES = { R: "Reconnaître", A: "Accéder", P: "Protéger", I: "Incident", V: "Vérifier", C: "Cadre" };
   function reglesBody() { return h("div", {}, h("h1", {}, "Lundi chez Granuval"), h("p", {}, "Vous êtes les salariés de Granuval, une entreprise fictive de granulés. Chaque équipe protège sa propre entreprise pendant une journée de 8 scènes (07 h 42 à 16 h 40)."), h("div", { class: "card" }, h("h3", {}, "Déroulement d'une scène"), h("ol", {}, h("li", {}, "L'animateur ouvre la scène : elle s'affiche sur votre téléphone."), h("li", {}, "Vous répondez seul(e) : boutons, listes ou remise en ordre. Vous pouvez modifier avant la correction."), h("li", {}, "L'animateur révèle la correction : vous voyez vos points (0 à 3) et l'explication de chaque réponse."), h("li", {}, "La moyenne de votre équipe fait varier 4 jauges : ● Argent, ▲ Production, ■ Données, ◆ Confiance."))), h("div", { class: "card" }, h("h3", {}, "Points et jauges"), h("p", {}, "Moyenne d'équipe de 2,4 ou plus : aucune perte. De 1,5 à 2,4 : −1 sur la jauge principale. Moins de 1,5 : −2 sur la jauge principale et −1 sur la seconde. Les équipes sont classées par points cumulés."), h("p", {}, "Tous les joueurs sont égaux : pas de rôle particulier dans l'équipe.")), h("div", { class: "card" }, h("h3", {}, "Règles d'or"), h("ul", {}, h("li", {}, "Ne saisissez jamais un vrai mot de passe, une vraie adresse ou une donnée réelle dans cette application."), h("li", {}, "Si l'application se fige, rechargez la page : vos réponses sont conservées.")))); }
+  // Retour du navigateur = question précédente dans la partie (jamais une sortie) ; « Quitter le jeu » demande confirmation.
+  var quitting = false;
+  function guard(onBack, warn) {
+    var hash0 = location.hash; try { history.pushState({ cr: 1 }, "", location.href); } catch (e) {}
+    window.addEventListener("popstate", function () { if (location.hash !== hash0 || quitting) return; try { onBack(); } catch (e) {} try { history.pushState({ cr: 1 }, "", location.href); } catch (e) {} });
+    if (warn) window.addEventListener("beforeunload", function (e) { if (quitting) return; e.preventDefault(); e.returnValue = ""; });
+  }
+  function quitBtn() {
+    return h("button", { class: "tb", onclick: function () { var close; close = modal("Quitter le jeu ?", h("div", {}, h("p", {}, "Voulez-vous vraiment quitter le jeu ? La partie reste enregistrée dans ce navigateur : vous pourrez la retrouver en rouvrant la même adresse."), h("p", {}, h("button", { class: "pri", onclick: function () { close(); } }, "Rester dans le jeu"), " ", h("button", { onclick: function () { quitting = true; location.hash = "#/"; } }, "Quitter le jeu")))); } }, "Quitter le jeu");
+  }
+  function oops(host, retry, next) {
+    clear(host); host.appendChild(h("div", { class: "card bad", role: "alert" }, h("h3", {}, "Cette question n'a pas pu s'afficher"), h("p", {}, "Le jeu continue. Essayez de nouveau, ou passez à la suite."), h("p", {}, h("button", { class: "pri", onclick: retry }, "Réessayer"), " ", next ? h("button", { onclick: next }, "Question suivante") : null)));
+  }
   function modal(titre, node) {
     var ov = h("div", { class: "ovl", role: "dialog", "aria-modal": "true", "aria-label": titre }), box = h("div", { class: "mbox" });
     function close() { ov.remove(); }
@@ -211,15 +224,15 @@
     var cache = lsGet("cr_cache_" + sid, {}), nav = null;
     function played() { return C.tasks.filter(function (x) { return cache[x.id]; }).map(function (x) { return x.id; }); }
     function curId() { return nav != null ? nav : (st && st.task) || null; }
-    function status() { clear(bar); var eq = C.equipes.filter(function (x) { return x.id === prof.team; })[0]; bar.appendChild(h("b", {}, eq.s + " " + prof.name + " · " + eq.n)); bar.appendChild(syncBadge(bus)); bar.appendChild(h("span", {}, h("button", { class: "tb", onclick: openAudit }, "Audit"), " ", h("button", { class: "tb", onclick: function () { modal("Règles du jeu", reglesBody()); } }, "Règles"), " ", h("button", { class: "tb", onclick: function () { var id = curId(); modal("Signaler", sigForm(bus, sid, prof, id ? id : null)); } }, "Signaler"))); }
+    function status() { clear(bar); var eq = C.equipes.filter(function (x) { return x.id === prof.team; })[0]; bar.appendChild(h("b", {}, eq.s + " " + prof.name + " · " + eq.n)); bar.appendChild(syncBadge(bus)); bar.appendChild(h("span", {}, h("button", { class: "tb", onclick: openAudit }, "Audit"), " ", h("button", { class: "tb", onclick: function () { modal("Règles du jeu", reglesBody()); } }, "Règles"), " ", h("button", { class: "tb", onclick: function () { var id = curId(); modal("Signaler", sigForm(bus, sid, prof, id ? id : null)); } }, "Signaler"), " ", quitBtn())); }
     function join() { bus.pub(topic(sid, "r"), { k: "J", p: prof.pid, n: prof.name, tm: prof.team, u: uid() }); var cur = st && st.phase === "open" ? st.task : null; if (cur && ans[cur]) sendAns(cur); }
     function sendAns(id) { bus.pub(topic(sid, "r"), { k: "A", p: prof.pid, n: prof.name, tm: prof.team, t: id, a: ans[id], i: insp[id] || [], u: uid() }); }
     bus = new Bus(sid, function () { status(); if (bus.st === "relais") { join(); flushSig(bus, sid); } });
     bus.sub(topic(sid, "h"), function (o) { var m; try { m = JSON.parse(o.m); } catch (e) { return; } if (st && m.v < st.v) return; st = m; if (st.phase === "revealed" && st.reveal && st.reveal.t) { cache[st.reveal.t] = { key: st.reveal.key, avg: st.reveal.avg }; lsSet("cr_cache_" + sid, cache); } render(); });
-    setInterval(status, 5000); status();
+    setInterval(status, 5000); status(); guard(function () { step(-1); }, false);
     function step(d) { var l = played(), live = st && st.phase === "revealed" && cache[st.task] ? l.indexOf(st.task) : l.length, cur = nav != null ? l.indexOf(nav) : live, n = cur + d; nav = (n < 0 || n >= l.length) ? (n < 0 ? l[0] || null : null) : l[n]; if (nav && st && st.phase === "revealed" && nav === st.task) nav = null; shown = null; render(); window.scrollTo(0, 0); }
     function updNav() { clear(nv); var l = played(); if (!l.length) return; var live = st && st.phase === "open" ? st.task : null; if (nav) nv.appendChild(h("p", { class: "small" }, "Vous relisez la question " + nav + (live ? " · une nouvelle question est ouverte" : ""))); nv.appendChild(h("button", { onclick: function () { step(-1); } }, "◀ Précédente")); nv.appendChild(h("button", { disabled: nav == null, onclick: function () { step(1); } }, "Suivante ▶")); if (nav) nv.appendChild(h("button", { class: "pri", onclick: function () { nav = null; shown = null; render(); } }, live ? "Revenir à la question en cours" : "Revenir à l'écran actuel")); }
-    function render() { render0(); updNav(); }
+    function render() { try { render0(); updNav(); } catch (e) { if (window.console) console.error(e); shown = null; oops(main, function () { shown = null; render(); }, function () { if (nav) step(1); else { shown = null; wait(); } }); } }
     function hist(id) { var t = task(id); if (shown === "h" + id) return; shown = "h" + id; clear(main); main.appendChild(h("h1", {}, t.titre)); main.appendChild(h("p", {}, t.enonce)); main.appendChild(Correction(t, cache[id].key, ans[id])); if (t.imp) main.appendChild(h("div", { class: "card" }, h("h3", {}, "Imprévu"), h("p", {}, t.imp.t), h("p", { class: "small" }, t.imp.q))); }
     function render0() {
       if (nav && cache[nav]) return hist(nav); nav = null;
@@ -323,9 +336,10 @@
       if (!any) box.appendChild(h("p", { class: "small" }, "Aucune équipe pour l'instant."));
       box.appendChild(h("p", { class: "small" }, "Réservé à l'animateur : ne pas projeter. Chaque élément n'est crédité qu'une fois par équipe, après action de la moitié de l'équipe (ou moyenne de 1,5 sur 3 pour un geste)."));
       return box; }
-    function draw() {
+    function draw() { try { draw0(); } catch (e) { if (window.console) console.error(e); oops(root2, draw, function () { try { go(1); } catch (e2) { draw(); } }); } }
+    function draw0() {
       if (!bus) return; clear(root2);
-      var bar = h("div", { class: "bar" }, h("b", {}, "Tour · Jeu 23 · séance " + sid), h("span", {}, syncBadge(bus, slide.last ? "diapo " + slide.last.n + " il y a " + Math.round((Date.now() - slide.at) / 1000) + " s" : "aucune diapo reçue"), " ", h("button", { onclick: function () { bus.resync(); pubState(); } }, "Resynchroniser"), " ", h("button", { onclick: openAudit }, "Relevé de l'audit"), " ", h("button", { onclick: function () { proj = !proj; draw(); } }, proj ? "Vue complète" : "Vue projetable")));
+      var bar = h("div", { class: "bar" }, h("b", {}, "Tour · Jeu 23 · séance " + sid), h("span", {}, syncBadge(bus, slide.last ? "diapo " + slide.last.n + " il y a " + Math.round((Date.now() - slide.at) / 1000) + " s" : "aucune diapo reçue"), " ", h("button", { onclick: function () { bus.resync(); pubState(); } }, "Resynchroniser"), " ", h("button", { onclick: openAudit }, "Relevé de l'audit"), " ", h("button", { onclick: function () { proj = !proj; draw(); } }, proj ? "Vue complète" : "Vue projetable"), " ", quitBtn()));
       root2.appendChild(bar);
       var tt = teams();
       if (proj) { var pm = h("main", { class: "wide proj" }); pm.appendChild(h("h1", {}, "Classement des équipes")); pm.appendChild(Classement(tt)); tt.forEach(function (x) { var e = C.equipes.filter(function (q) { return q.id === x.id; })[0]; if (x.n) pm.appendChild(h("div", { class: "card" }, h("h3", {}, e.s + " " + e.n), Jauges(x.j), h("p", {}, "Compte : " + euro(x.acc.total)))); }); root2.appendChild(pm); return; }
@@ -345,7 +359,7 @@
       cols.appendChild(L); cols.appendChild(M); cols.appendChild(R); m.appendChild(cols); root2.appendChild(m);
     }
     root2.appendChild(h("main", {}, h("p", {}, "Chargement des corrigés (tour seulement)…")));
-    loadKeys().then(function (K) { KEYS = K; connect(); draw(); setInterval(function () { if (!proj) draw(); }, 15000); });
+    loadKeys().then(function (K) { KEYS = K; guard(function () { go(-1); }, true); connect(); draw(); setInterval(function () { if (!proj) draw(); }, 15000); });
   }
 
   function viewRegles() {
