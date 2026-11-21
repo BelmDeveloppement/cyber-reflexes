@@ -463,7 +463,7 @@
   }
   var cleanup = [];
   function route() {
-    clear(root); var r = (location.hash || "#/").replace(/\?.*$/, "");
+    clear(root); var r = (location.hash || "#/").replace(/\?.*$/, ""); var TT = { "#/j": "Réflexes · ÉCRAN JOUEUR", "#/tour": "Réflexes · TOUR DE CONTRÔLE", "#/ecran": "Réflexes · ÉCRAN PROJETÉ", "#/solo": "Réflexes · Entraînement seul", "#/audit": "Réflexes · Audit", "#/regles": "Réflexes · Règles", "#/outils": "Réflexes · Boîte à outils" }; document.title = TT[r] || "Jeu 23 · Réflexes";
     if (r === "#/j") viewPlayer(); else if (r === "#/tour") animGate(viewTour); else if (r === "#/ecran") animGate(viewEcran); else if (r === "#/solo") viewSolo(); else if (r === "#/regles") viewRegles(); else if (r === "#/outils") viewOutils(); else if (r === "#/audit") viewAudit(); else viewHome();
   }
   window.addEventListener("hashchange", function () { location.reload(); });
