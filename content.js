@@ -59,6 +59,9 @@
     champs: [{ id: "n", l: "Nombre de fuites trouvées", o: [{ id: "x", t: "Je n'ai pas fait le test" }, { id: "0", t: "0" }, { id: "1", t: "1 à 2" }, { id: "3", t: "3 à 5" }, { id: "6", t: "6 ou plus" }] }, { id: "d", l: "Que décidez-vous ?", o: [{ id: "m", t: "Changer les mots de passe concernés" }, { id: "f", t: "Activer la double authentification" }, { id: "r", t: "Rien" }] }] });
   add({ id: "R1", bloc: "B2", titre: "Où signaler quoi ?", type: "form", but: "Savoir à qui s'adresser sans perdre de temps.", enonce: "Associez chaque situation au bon canal.",
     champs: [{ id: "a", l: "Un SMS de livraison frauduleux reçu sur votre téléphone", o: CANAUX }, { id: "b", l: "Un e-mail d'hameçonnage reçu sur votre boîte personnelle", o: CANAUX }, { id: "c", l: "Un site d'escroquerie rencontré en ligne", o: CANAUX }, { id: "d", l: "Un poste de l'entreprise affiche une demande de rançon : première personne à prévenir", o: CANAUX }] });
+  // Phishing scindé en deux sous-blocs (configuration de séance 3h-7h) : cœur (toujours inclus) et complément (selon durée).
+  (function () { var COEUR = ["P1", "P6", "L1", "R1"], COMPL = ["P2", "P3", "P4", "P5", "P7", "P8", "H1"];
+    T.forEach(function (t) { if (COEUR.indexOf(t.id) !== -1) t.bloc = "B2a"; else if (COMPL.indexOf(t.id) !== -1) t.bloc = "B2b"; }); })();
 
   // ───────── Bloc 3 · Situations du quotidien
   add({ id: "Q1", bloc: "B3", titre: "Le mot de passe le plus robuste", type: "single", but: "Choisir la longueur et le sens plutôt que les symboles. (Ne tapez jamais un vrai mot de passe dans cette application.)", enonce: "Quel mot de passe est le plus robuste ? (Exemples fictifs.)",
@@ -149,7 +152,7 @@
     relais: "wss://cpro-relay.belmdeveloppement.workers.dev", relaisHttp: "https://cpro-relay.belmdeveloppement.workers.dev", ntfy: "https://ntfy.sh",
     equipes: [{ id: "A", n: "Équipe A (jeton bleu)", s: "●" }, { id: "B", n: "Équipe B (jeton vert)", s: "▲" }, { id: "C", n: "Équipe C (jeton orange)", s: "■" }, { id: "D", n: "Équipe D (jeton rouge)", s: "◆" }, { id: "E", n: "Équipe E (jeton rose)", s: "★" }],
     jauges: [{ id: "a", n: "Argent", s: "●" }, { id: "p", n: "Production", s: "▲" }, { id: "d", n: "Données", s: "■" }, { id: "c", n: "Confiance", s: "◆" }],
-    blocs: { B0: "Ouverture", B8: "Audit en direct", B9: "Repérage public", B1: "Pourquoi et comment", B2: "Phishing", B3: "Quotidien", B4: "Cas réels", B5: "Boîte à outils", B6: "Bilan", B7: "Annexe Mélia (à valider)", J: "Jeu 23", J2: "Jeu 23 · manche 2" },
+    blocs: { B0: "Ouverture", B8: "Audit en direct", B9: "Repérage public", B1: "Pourquoi et comment", B2a: "Phishing — cœur", B2b: "Phishing — complément", B3: "Quotidien", B4: "Cas réels", B5: "Boîte à outils", B6: "Bilan", B7: "Annexe Mélia (à valider)", J: "Jeu 23", J2: "Jeu 23 · manche 2" },
     // Durées prévisionnelles par bloc (estimation à vérifier en situation réelle, jamais chronométrée — voir claude/proposition-modularite-duree-jeu23.md).
     // "obligatoire" = toujours inclus, quelle que soit la durée de la séance (3h à 7h). "socle" = inclus par défaut. "complement" = activable selon la durée commandée.
     catalogue: [
@@ -157,7 +160,8 @@
       { bloc: "B8", nom: "Audit en direct (AU)", duree: 50, niveau: "obligatoire" },
       { bloc: "B9", nom: "Repérage public (OSINT)", duree: 28, niveau: "obligatoire" },
       { bloc: "B1", nom: "Pourquoi et comment", duree: 17, niveau: "socle" },
-      { bloc: "B2", nom: "Phishing", duree: 54, niveau: "socle" },
+      { bloc: "B2a", nom: "Phishing — cœur (P1, P6, L1, R1)", duree: 21, niveau: "socle" },
+      { bloc: "B2b", nom: "Phishing — complément (P2-P5, P7, P8, H1)", duree: 33, niveau: "complement" },
       { bloc: "B3", nom: "Quotidien", duree: 40, niveau: "socle" },
       { bloc: "B4", nom: "Cas réels", duree: 18, niveau: "complement" },
       { bloc: "B5", nom: "Boîte à outils", duree: 15, niveau: "complement" },
