@@ -233,7 +233,7 @@
     var cache = lsGet("cr_cache_" + sid, {}), nav = null;
     function played() { return C.tasks.filter(function (x) { return cache[x.id]; }).map(function (x) { return x.id; }); }
     function curId() { return nav != null ? nav : (st && st.task) || null; }
-    function status() { clear(bar); var eq = C.equipes.filter(function (x) { return x.id === prof.team; })[0]; bar.appendChild(h("b", {}, eq.s + " " + prof.name + " · " + eq.n)); bar.appendChild(syncBadge(bus)); bar.appendChild(h("span", {}, h("button", { class: "tb", onclick: openAudit }, "Audit"), " ", h("button", { class: "tb", onclick: function () { modal("Règles du jeu", reglesBody()); } }, "Règles"), " ", h("button", { class: "tb", onclick: function () { var id = curId(); modal("Signaler", sigForm(bus, sid, prof, id ? id : null)); } }, "Signaler"), " ", quitBtn())); }
+    function status() { clear(bar); var eq = C.equipes.filter(function (x) { return x.id === prof.team; })[0]; var qid = curId(), qn = qid ? C.numeroQuestion(qid) : null; bar.appendChild(h("b", { class: "jeu-q" }, "Jeu " + C.numero + (qn ? " · Question " + qn : ""))); bar.appendChild(h("b", {}, eq.s + " " + prof.name + " · " + eq.n)); bar.appendChild(syncBadge(bus)); bar.appendChild(h("span", {}, h("button", { class: "tb", onclick: openAudit }, "Audit"), " ", h("button", { class: "tb", onclick: function () { modal("Règles du jeu", reglesBody()); } }, "Règles"), " ", h("button", { class: "tb", onclick: function () { var id = curId(); modal("Signaler", sigForm(bus, sid, prof, id ? id : null)); } }, "Signaler"), " ", quitBtn())); }
     function join() { bus.pub(topic(sid, "r"), { k: "J", p: prof.pid, n: prof.name, tm: prof.team, u: uid() }); var cur = st && st.phase === "open" ? st.task : null; if (cur && ans[cur]) sendAns(cur); }
     function sendAns(id) { bus.pub(topic(sid, "r"), { k: "A", p: prof.pid, n: prof.name, tm: prof.team, t: id, a: ans[id], i: insp[id] || [], u: uid() }); }
     bus = new Bus(sid, function () { status(); if (bus.st === "relais") { join(); flushSig(bus, sid); } });
@@ -349,7 +349,10 @@
     function draw() { try { draw0(); } catch (e) { if (window.console) console.error(e); oops(root2, draw, function () { try { go(1); } catch (e2) { draw(); } }); } }
     function draw0() {
       if (!bus) return; clear(root2);
-      var bar = h("div", { class: "bar" }, h("b", {}, "Tour · Jeu 23 · séance " + sid), h("span", {}, syncBadge(bus, slide.last ? "diapo " + slide.last.n + " il y a " + Math.round((Date.now() - slide.at) / 1000) + " s" : "aucune diapo reçue"), " ", h("button", { onclick: function () { slide.allowOld = true; bus.resync(); pubState(); } }, "Resynchroniser"), " ", h("button", { onclick: openAudit }, "Relevé de l'audit"), " ", h("button", { onclick: function () { window.open(location.href.split("#")[0] + "#/ecran?s=" + sid, "_blank"); } }, "Écran projeté (nouvel onglet)"), " ", quitBtn()));
+      var qn2 = S.cur ? C.numeroQuestion(S.cur) : null;
+      var animateur = { pid: "animateur-" + sid, name: "Animateur", team: null };
+      var nSigAtraiter = Object.keys(S.sig || {}).filter(function (k) { return S.sig[k].statut === "à approuver"; }).length;
+      var bar = h("div", { class: "bar" }, h("b", {}, "Tour · Jeu " + C.numero + (qn2 ? " · Question " + qn2 : "") + " · séance " + sid), h("span", {}, syncBadge(bus, slide.last ? "diapo " + slide.last.n + " il y a " + Math.round((Date.now() - slide.at) / 1000) + " s" : "aucune diapo reçue"), " ", h("button", { onclick: function () { slide.allowOld = true; bus.resync(); pubState(); } }, "Resynchroniser"), " ", h("button", { onclick: openAudit }, "Relevé de l'audit"), " ", h("button", { class: "tb", onclick: function () { modal("Signaler", sigForm(bus, sid, animateur, S.cur || null, draw)); } }, "Signaler"), " ", h("button", { class: "tb", onclick: function () { modal("Revue de backlog — signalements de la séance (" + Object.keys(S.sig || {}).length + (nSigAtraiter ? ", " + nSigAtraiter + " à traiter" : "") + ")", sigList()); } }, "Revue de backlog" + (nSigAtraiter ? " (" + nSigAtraiter + ")" : "")), " ", h("button", { onclick: function () { window.open(location.href.split("#")[0] + "#/ecran?s=" + sid, "_blank"); } }, "Écran projeté (nouvel onglet)"), " ", quitBtn()));
       root2.appendChild(bar);
       var tt = teams();
       if (proj) { var pm = h("main", { class: "wide proj" }); pm.appendChild(h("h1", {}, "Classement des équipes")); pm.appendChild(Classement(tt)); tt.forEach(function (x) { var e = C.equipes.filter(function (q) { return q.id === x.id; })[0]; if (x.n) pm.appendChild(h("div", { class: "card" }, h("h3", {}, e.s + " " + e.n), Jauges(x.j), h("p", {}, "Compte : " + euro(x.acc.total)))); }); root2.appendChild(pm); return; }
@@ -425,7 +428,7 @@
   }
   function viewAudit() {
     root.appendChild(h("div", { class: "bar" }, h("b", {}, "Jeu 23 · Relevé de l'audit"), h("a", { href: "#/" }, "Accueil")));
-    root.appendChild(h("main", { class: "wide" }, h("h1", {}, "Audit en direct de melia.green"), AuditLaunch(), h("p", {}, h("button", { onclick: function () { openAudit("oi"); } }, "🔎 Repérage public (OSINT)"))));
+    root.appendChild(h("main", { class: "wide" }, h("h1", {}, "Audit en direct de melia.green"), AuditLaunch(), h("p", {}, h("button", { onclick: function () { openAudit("osyn"); } }, "🔎 Repérage public (OSINT)"))));
   }
   function openAudit(tab) { launchTab = typeof tab === "string" ? tab : null; modal("Audit de melia.green", AuditLaunch()); }
   // ───────── Code animateur : protège la tour et l'écran projeté (empreinte PBKDF2 dans animateur.json, jamais le code)
